@@ -15,6 +15,7 @@
  */
 
 #include <chrono>
+#include <std_msgs/Int16.h>
 #include <condition_variable>
 #include <mavros/mavros_plugin.h>
 
@@ -149,6 +150,8 @@ public:
 		wp_nh.param("pull_after_gcs", do_pull_after_gcs, false);
 
 		wp_list_pub = wp_nh.advertise<mavros_msgs::WaypointList>("waypoints", 2, true);
+		current_wp_pub = wp_nh.advertise<std_msgs::Int16>("current", 1, true);
+		reached_wp_pub = wp_nh.advertise<std_msgs::Int16>("reached", 1, true);
 		pull_srv = wp_nh.advertiseService("pull", &WaypointPlugin::pull_cb, this);
 		push_srv = wp_nh.advertiseService("push", &WaypointPlugin::push_cb, this);
 		clear_srv = wp_nh.advertiseService("clear", &WaypointPlugin::clear_cb, this);
@@ -180,6 +183,8 @@ private:
 	ros::NodeHandle wp_nh;
 
 	ros::Publisher wp_list_pub;
+	ros::Publisher current_wp_pub;
+	ros::Publisher reached_wp_pub;
 	ros::ServiceServer pull_srv;
 	ros::ServiceServer push_srv;
 	ros::ServiceServer clear_srv;
@@ -321,6 +326,10 @@ private:
 			lock.unlock();
 			publish_waypoints();
 		}
+                std_msgs::Int16 i16;
+                i16.data = mcur.seq;
+
+                current_wp_pub.publish(i16);
 	}
 
 	void handle_mission_count(const mavlink::mavlink_message_t *msg, mavlink::common::msg::MISSION_COUNT &mcnt)
@@ -363,6 +372,10 @@ private:
 	{
 		/* in QGC used as informational message */
 		ROS_INFO_NAMED("wp", "WP: reached #%d", mitr.seq);
+                std_msgs::Int16 i16;
+                i16.data = mitr.seq;
+
+                reached_wp_pub.publish(i16);
 	}
 
 	void handle_mission_ack(const mavlink::mavlink_message_t *msg, mavlink::common::msg::MISSION_ACK &mack)
