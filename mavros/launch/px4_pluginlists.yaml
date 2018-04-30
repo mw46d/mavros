@@ -5,6 +5,14 @@ plugin_blacklist:
 - image_pub
 - vibration
 - distance_sensor
-
-plugin_whitelist: []
+- px4flow
+- ftp
+- vision_*
+- setpoint_*
+- mocap_*
+# commented:
+# - *_position
+# - global_*
+plugin_whitelist:
+- lidar_sensor
 #- 'sys_*'
